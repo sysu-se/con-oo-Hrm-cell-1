@@ -5,7 +5,6 @@ export class Sudoku {
    */
   constructor(grid) {
     // 存储棋盘数据
-    // 每一格的数据推荐为 number 或 null，原始题目数据要做深拷贝
     this._grid = grid.map(row => row.slice());
   }
 
@@ -35,7 +34,7 @@ export class Sudoku {
     return false;
   }
 
-  /** 简单校验当前局面是否合法（可拓展为完整校验）*/
+  /** 校验当前局面是否合法*/
   isValid(row, col, value) {
     // 检查当前行/列/九宫格无重复
     for(let c=0; c<9; c++){
@@ -51,7 +50,7 @@ export class Sudoku {
       for(let c=0; c<3; c++){
         const rr = boxRow + r;
         const cc = boxCol + c;
-        if(rr!=row && cc!=col && this._grid[rr][cc] === value)return false;
+        if(!(rr === row && cc === col) && this._grid[rr][cc] === value)return false;
       }
     }
     return true;
