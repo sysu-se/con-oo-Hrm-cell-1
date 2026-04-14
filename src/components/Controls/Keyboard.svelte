@@ -8,22 +8,22 @@
 	import { keyboardDisabled } from '@sudoku/stores/keyboard';
 
 	function handleKeyButton(num) {
-		if (!$keyboardDisabled) {
-			if ($notes) {
-				if (num === 0) {
-					candidates.clear($cursor);
-				} else {
-					candidates.add($cursor, num);
-				}
-				userGrid.set($cursor, 0);
-			} else {
-				if ($candidates.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
-					candidates.clear($cursor);
-				}
-
-				userGrid.set($cursor, num);
-			}
+	if (!$keyboardDisabled) {
+		if ($notes) {
+		if (num === 0) {
+			candidates.clear($cursor);
+		} else {
+			candidates.add($cursor, num);
 		}
+		userGrid.set($cursor, 0);
+		} else {
+		if ($candidates.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
+			candidates.clear($cursor);
+		}
+		userGrid.set($cursor, num);
+		}
+	} else {
+	}
 	}
 
 	function handleKey(e) {

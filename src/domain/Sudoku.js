@@ -1,42 +1,88 @@
 // src/domain/sudoku.js
 export class Sudoku {
   /**
-   * @param {number[][]} grid 9x9数组，0表示空
+   * @param {number[][]} grid 9x9数组
    */
-  constructor(grid) {
-    // 存储棋盘数据
-    this._grid = grid.map(row => row.slice());
+  constructor(grid, givens = null) {
+    /**
+     * 构造的时候用0统一表示空。
+     * 增加校验功能：如果cell不是1-9的整数就会抛出错误。
+     */
+    this._grid = grid.map((row, r)=>row.map((cell, c) => {
+      if(cell === null || cell === undefined) return 0;
+      if(typeof cell !== 'number' || !Number.isInteger(cell) || cell<0 || cell>9){
+        throw new Error(`Invalid cell value at [${r}][${c}]: ${cell}. Must be integer 0-9.`);
+      }
+      return cell;
+    }));
+    /**
+     * 新增标记固定格，避免修改数独题面。
+     */
+      // 如果传入了 givens 就用，否则从 grid 推断
+    if (givens) {
+      this._givens = givens.map(row => [...row]);
+    } else {
+      this._givens = grid.map(row => row.map(cell => cell !== 0 && cell !== null && cell !== undefined));
+    };
   }
 
-  /** 返回当前棋盘的二维数组深拷贝 */
+
+  /** 
+   * 返回当前棋盘的二维数组深拷贝 
+   * @returns {number[][]} 9*9数组，1-9表示数字，0表示空格
+   */
+  // 对于无参的不改变状态的函数，如下面这个，可以改成get Grid(), 调用时直接sudoku.Grid()
   getGrid() {
     return this._grid.map(row => row.slice());
   }
-
   /**
-   * 对某格填写值
-   * @param {{row:number,col:number,value:number|null}} move
+   * 判断某个位置是否是题目给定的固定格
+   * @param {number} row 行索引 0-8
+   * @param {number} col 列索引 0-8
+   * @returns {boolean}
    */
-  guess(move) {
-    const { row, col, value } = move;
-    if(row < 0 || row > 8 || col < 0 || col > 8)
-      throw new Error('row/col 超出范围');
-    // 检查 value 是否为1~9或null
-    if(value === null ){
-      this._grid[row][col] = null;
-      return true;
-    }
-    if(this.isValid(row, col, value)){
-      this._grid[row][col] = value;
-      return true;
-    }
-    
+  isGiven(row, col){
+    return this._givens[row][col];
+  }
+  /**
+   * 尝试对某格填入
+   * @param {{row:number,col:number,value:number}} move
+   * @returns {boolean} 
+   */
+guess(move) {
+  const { row, col, value } = move;
+  console.log('guess called:', { row, col, value, currentValue: this._grid[row][col] });
+  // 边界检查
+  if (row < 0 || row > 8 || col < 0 || col > 8) {
+    return false;  
+  }
+  
+  // 检查固定格
+  if (this._givens[row][col]) {
+    return false;  
+  }
+  // 清空格子
+  if (value === 0 || value === null || value === undefined) {
+    this._grid[row][col] = 0;  
+    return true;
+  }
+  
+  // 值域检查
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 9) {
     return false;
   }
 
-  /** 校验当前局面是否合法*/
+  // 冲突检查
+  if (!this.isValid(row, col, value)) {
+    return false;
+  }
+  
+  this._grid[row][col] = value;
+  return true;
+}
+
+  /** 检查当前行/列/九宫格无重复*/
   isValid(row, col, value) {
-    // 检查当前行/列/九宫格无重复
     for(let c=0; c<9; c++){
       if(c!=col && this._grid[row][c] === value) return false;
     }
@@ -58,7 +104,8 @@ export class Sudoku {
 
   /** 深拷贝当前Sudoku对象 */
   clone() {
-    return new Sudoku(this.getGrid());
+    //传入当前的 _givens，保持固定格标记不变
+    return new Sudoku(this.getGrid(), this._givens);
   }
 
   /** 外表化到字符串（调试用） */
@@ -68,15 +115,19 @@ export class Sudoku {
       .join('\n');
   }
 
-  /** 序列化为JSON（所有要存储的字段） */
+  /** 
+   * 序列化为JSON
+   * @returns {Object}
+   */
   toJSON() {
     return {
-      grid: this.getGrid()
+      grid: this.getGrid(),
+      givens: this._givens.map(row => row.slice())
     };
   }
 
   /** 从JSON恢复棋盘 */
   static fromJSON(json) {
-    return new Sudoku(json.grid);
+    return new Sudoku(json.grid, json.givens)
   }
 }
