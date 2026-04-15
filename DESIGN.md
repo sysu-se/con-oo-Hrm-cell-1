@@ -4,7 +4,7 @@
 
 ### 1. View 层实际消费是什么？
 
-View 层（.svelte 组件）**不直接**操作 `Game` 或 `Sudoku`，而是通过 `src/stores/grid.js` 的响应式 store（Store Adapter 模式）。
+View 层（.svelte 组件）**不直接**操作 `Game` 或 `Sudoku`，而是通过 `src\node_modules\@sudoku\stores\grid.js` 的响应式 store（Store Adapter 模式）。
 
 - 组件通过 `$userGrid` 拿到9x9棋盘数组，`$invalidCells` 拿到有冲突的格子。
 - 状态相关的，比如“撤销/重做”按钮是否可点击，用的是 `grid.canUndo()` 和 `grid.canRedo()`。
